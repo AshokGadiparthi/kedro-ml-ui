@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Backend Connection Tester</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    
+    .test-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f5f5f5;
+      border-radius: 8px;
+    }
+    
+    .test-section h2 {
+      color: #555;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      transition: all 0.2s;
+    }
+    
+    button:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .result {
+      margin-top: 15px;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    
+    .success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+    
+    .error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+    
+    .info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+    }
+    
+    .warning {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      color: #856404;
+    }
+    
+    .url-input {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+    
+    .url-input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+    
+    .badge-success {
+      background: #28a745;
+      color: white;
+    }
+    
+    .badge-error {
+      background: #dc3545;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 Backend Connection Tester</h1>
+    <p class="subtitle">Test your Spring Boot backend connectivity</p>
+    
+    <div class="test-section">
+      <h2>Backend URL</h2>
+      <input 
+        type="text" 
+        id="baseUrl" 
+        class="url-input" 
+        value="http://192.168.1.147:8080"
+        placeholder="Enter backend URL"
+      >
+      <p style="font-size: 12px; color: #666;">Change this if your backend is at a different URL</p>
+    </div>
+    
+    <div class="test-section">
+      <h2>1. Health Check</h2>
+      <p style="font-size: 14px; color: #666; margin-bottom: 15px;">
+        Tests if backend is running and accessible
+      </p>
+      <button onclick="testHealth()">Test Health</button>
+      <div id="healthResult"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>2. Projects API</h2>
+      <p style="font-size: 14px; color: #666; margin-bottom: 15px;">
+        Tests if Projects endpoint is working
+      </p>
+      <button onclick="testProjects()">Test Projects</button>
+      <div id="projectsResult"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>3. EDA Health Check</h2>
+      <p style="font-size: 14px; color: #666; margin-bottom: 15px;">
+        Tests if EDA service is available
+      </p>
+      <button onclick="testEdaHealth()">Test EDA Health</button>
+      <div id="edaHealthResult"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>4. CORS Test</h2>
+      <p style="font-size: 14px; color: #666; margin-bottom: 15px;">
+        Checks if CORS is properly configured
+      </p>
+      <button onclick="testCors()">Test CORS</button>
+      <div id="corsResult"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>5. All Endpoints</h2>
+      <p style="font-size: 14px; color: #666; margin-bottom: 15px;">
+        Tests all major API endpoints
+      </p>
+      <button onclick="testAllEndpoints()">Test All</button>
+      <div id="allResult"></div>
+    </div>
+  </div>
+
+  <script>
+    function getBaseUrl() {
+      return document.getElementById('baseUrl').value.trim();
+    }
+
+    function showResult(elementId, message, type) {
+      const element = document.getElementById(elementId);
+      element.innerHTML = `<div class="result ${type}">${message}</div>`;
+    }
+
+    async function testHealth() {
+      const baseUrl = getBaseUrl();
+      showResult('healthResult', 'Testing...', 'info');
+      
+      try {
+        const response = await fetch(`${baseUrl}/actuator/health`);
+        const data = await response.json();
+        
+        if (data.status === 'UP') {
+          showResult('healthResult', 
+            `✅ SUCCESS!\n\nStatus: ${data.status}\nBackend is running and healthy!`, 
+            'success'
+          );
+        } else {
+          showResult('healthResult', 
+            `⚠️ WARNING\n\nStatus: ${data.status}\nBackend responded but status is not UP`, 
+            'warning'
+          );
+        }
+      } catch (error) {
+        showResult('healthResult', 
+          `❌ FAILED\n\nError: ${error.message}\n\nPossible causes:\n1. Backend is not running\n2. Wrong URL\n3. Firewall blocking connection\n4. CORS not configured`, 
+          'error'
+        );
+      }
+    }
+
+    async function testProjects() {
+      const baseUrl = getBaseUrl();
+      showResult('projectsResult', 'Testing...', 'info');
+      
+      try {
+        const response = await fetch(`${baseUrl}/api/projects`);
+        const data = await response.json();
+        
+        showResult('projectsResult', 
+          `✅ SUCCESS!\n\nStatus: ${response.status}\nProjects found: ${Array.isArray(data) ? data.length : 'N/A'}\n\nResponse:\n${JSON.stringify(data, null, 2)}`, 
+          'success'
+        );
+      } catch (error) {
+        showResult('projectsResult', 
+          `❌ FAILED\n\nError: ${error.message}\n\nPossible causes:\n1. /api/projects endpoint doesn't exist\n2. CORS not configured\n3. Backend error`, 
+          'error'
+        );
+      }
+    }
+
+    async function testEdaHealth() {
+      const baseUrl = getBaseUrl();
+      showResult('edaHealthResult', 'Testing...', 'info');
+      
+      try {
+        const response = await fetch(`${baseUrl}/api/eda/health`);
+        const data = await response.json();
+        
+        if (data.status === 'UP' || data.available) {
+          showResult('edaHealthResult', 
+            `✅ SUCCESS!\n\nEDA service is available!\n\nResponse:\n${JSON.stringify(data, null, 2)}`, 
+            'success'
+          );
+        } else {
+          showResult('edaHealthResult', 
+            `⚠️ WARNING\n\nEDA service responded but may not be fully available\n\nResponse:\n${JSON.stringify(data, null, 2)}`, 
+            'warning'
+          );
+        }
+      } catch (error) {
+        showResult('edaHealthResult', 
+          `❌ FAILED\n\nError: ${error.message}\n\nPossible causes:\n1. EDA endpoints not implemented\n2. Different URL path\n3. CORS not configured`, 
+          'error'
+        );
+      }
+    }
+
+    async function testCors() {
+      const baseUrl = getBaseUrl();
+      showResult('corsResult', 'Testing...', 'info');
+      
+      try {
+        const response = await fetch(`${baseUrl}/api/projects`, {
+          method: 'OPTIONS',
+          headers: {
+            'Origin': window.location.origin,
+            'Access-Control-Request-Method': 'GET',
+          }
+        });
+        
+        const corsHeaders = {
+          'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+          'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+          'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
+        };
+        
+        if (corsHeaders['Access-Control-Allow-Origin']) {
+          showResult('corsResult', 
+            `✅ CORS IS CONFIGURED!\n\nCORS Headers:\n${JSON.stringify(corsHeaders, null, 2)}`, 
+            'success'
+          );
+        } else {
+          showResult('corsResult', 
+            `⚠️ CORS MAY NOT BE CONFIGURED\n\nNo CORS headers found. You may need to add CORS configuration to your backend.\n\nSee BACKEND_CONNECTION_FIX.md for instructions.`, 
+            'warning'
+          );
+        }
+      } catch (error) {
+        showResult('corsResult', 
+          `❌ CORS TEST FAILED\n\nError: ${error.message}\n\nThis likely means CORS is NOT configured. Add CORS configuration to your Spring Boot backend.`, 
+          'error'
+        );
+      }
+    }
+
+    async function testAllEndpoints() {
+      const baseUrl = getBaseUrl();
+      showResult('allResult', 'Testing all endpoints... This may take a moment...', 'info');
+      
+      const endpoints = [
+        { name: 'Health', url: '/actuator/health' },
+        { name: 'Projects', url: '/api/projects' },
+        { name: 'Datasets', url: '/api/datasets' },
+        { name: 'Models', url: '/api/models' },
+        { name: 'EDA Health', url: '/api/eda/health' },
+        { name: 'Activities', url: '/api/activities/recent' },
+      ];
+      
+      let results = 'ENDPOINT TEST RESULTS:\n' + '='.repeat(50) + '\n\n';
+      
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(`${baseUrl}${endpoint.url}`);
+          const status = response.status;
+          
+          if (status >= 200 && status < 300) {
+            results += `✅ ${endpoint.name.padEnd(15)} - ${endpoint.url}\n   Status: ${status} OK\n\n`;
+          } else {
+            results += `⚠️  ${endpoint.name.padEnd(15)} - ${endpoint.url}\n   Status: ${status}\n\n`;
+          }
+        } catch (error) {
+          results += `❌ ${endpoint.name.padEnd(15)} - ${endpoint.url}\n   Error: ${error.message}\n\n`;
+        }
+      }
+      
+      results += '='.repeat(50);
+      
+      showResult('allResult', results, 'info');
+    }
+
+    // Run health check on load
+    window.onload = function() {
+      console.log('Backend Connection Tester loaded');
+      console.log('Default URL:', getBaseUrl());
+    };
+  </script>
+</body>
+</html>

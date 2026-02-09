@@ -1,0 +1,94 @@
+# ML Engine API Configuration
+# Version 2.0 - Full Featured API for React UI
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ml-engine-api
+  
+  # Jackson - case insensitive enums
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
+    
+  # File Upload
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+      
+  # H2 Database (Development)
+  datasource:
+    url: jdbc:h2:file:./data/mlengine;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+    
+  # JPA Settings
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        
+  # H2 Console (Development only)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+
+# ML Engine Settings
+ml-engine:
+  python-path: ${PYTHON_PATH:python3}
+  storage:
+    base-dir: ./storage
+    datasets-dir: ./storage/datasets
+    models-dir: ./storage/models
+    temp-dir: ./storage/temp
+    exports-dir: ./storage/exports
+  # FastAPI ML Engine connection
+  api:
+    base-url: ${ML_ENGINE_API_URL:http://localhost:8000/api}
+    timeout: 60000
+    enabled: true  # Set to false to use mock mode
+
+# Swagger/OpenAPI
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    doc-expansion: none
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    com.mlengine: DEBUG
+    org.springframework: INFO
+    org.hibernate.SQL: WARN
+
+# CORS (for React development)
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:5173
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: "*"
+  allow-credentials: true

@@ -1,0 +1,28 @@
+# Core ML Dependencies
+pandas>=2.1.4
+numpy>=1.24.0
+scikit-learn>=1.4.0
+matplotlib>=3.8.0
+seaborn>=0.13.0
+
+# Advanced ML Algorithms
+xgboost>=2.0.0
+lightgbm>=4.1.0
+
+# Model Explainability
+shap>=0.44.0
+
+# Feature Engineering
+category_encoders>=2.6.0
+
+# File I/O
+joblib>=1.3.0
+
+# Progress bars
+tqdm>=4.66.0
+
+# Optional: Data Connectors (install separately with requirements-connectors.txt)
+# sqlalchemy>=2.0.0
+# boto3>=1.34.0
+# google-cloud-bigquery>=3.14.0
+# snowflake-connector-python>=3.6.0

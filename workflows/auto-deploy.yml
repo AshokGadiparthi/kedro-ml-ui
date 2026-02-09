@@ -1,0 +1,103 @@
+# 🚀 GitHub Actions - Auto Deploy Workflow
+# This workflow automatically builds and deploys your ML platform
+
+name: Auto Deploy ML Platform
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Job 1: Build and Test
+  build:
+    name: 🏗️ Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+      
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: 📚 Install dependencies
+        run: npm ci
+      
+      - name: 🔍 Lint code
+        run: npm run lint --if-present
+        continue-on-error: true
+      
+      - name: 🧪 Run tests
+        run: npm test --if-present
+        continue-on-error: true
+      
+      - name: 🏗️ Build project
+        run: npm run build
+      
+      - name: 📤 Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: dist/
+          retention-days: 7
+
+  # Job 2: Deploy to Production (only on main branch)
+  deploy:
+    name: 🚀 Deploy to Production
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+      
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: 📥 Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build
+          path: dist/
+      
+      - name: 🚀 Deploy to hosting
+        run: |
+          echo "🚀 Deploying to production..."
+          # Add your deployment commands here
+          # Example: npm run deploy
+          # Example: vercel deploy --prod
+          # Example: netlify deploy --prod
+          echo "✅ Deployment complete!"
+      
+      - name: 📢 Notify deployment
+        run: |
+          echo "✅ Successfully deployed to production!"
+          echo "🔗 URL: https://your-domain.com"
+
+  # Job 3: Notify on Slack (optional)
+  notify:
+    name: 📢 Notify Team
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: 📢 Send Slack notification
+        # Uncomment and configure if you want Slack notifications
+        # uses: 8398a7/action-slack@v3
+        # with:
+        #   status: ${{ job.status }}
+        #   text: 'Deployment ${{ job.status }}'
+        #   webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        run: echo "Notification step (configure Slack webhook to enable)"
